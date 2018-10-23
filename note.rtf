@@ -1,0 +1,229 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671
+{\fonttbl\f0\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;\red34\green139\blue34;\red160\green32\blue240;}
+{\*\expandedcolortbl;;\csgenericrgb\c13333\c54510\c13333;\csgenericrgb\c62745\c12549\c94118;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww28300\viewh17700\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs20 \cf2 %---------------- CONSTANT DEFINITION ----------------
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2 % CORNEA - SPHERO-CYLINDRICAL PARAMETER
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 s_cornea = [41;4;145];  \cf2 %(p,c,theta)
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2 % ANTERIOR CHAMBER - THICKNESS | REFRACTIVE INDEX
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 t_anteriorc = [3.6E-3; 1.366];  \cf2 %(t,v)
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2 % LENS_AS - SPHERO-CYLINDRICAL PARAMETER
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 s_lens_as = [8;3;180];  \cf2 %(p,c,theta)
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2 % LENS - THICKNESS | REFRACTIVE INDEX
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 t_lens = [3.6E-3; 1.413];  \cf2 %(t,v)
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2 % LENS_PS - SPHERO-CYLINDRICAL PARAMETER
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 s_lens_ps = [13;2;30];  \cf2 %(p,c,theta)
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2 % POSTERIOR CHAMBER - THICKNESS | REFRACTIVE INDEX
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 t_posteriorc = [14E-3; 1.336];  \cf2 %(t,v)
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2 %-----------------------------------------------------
+\fs24 \cf0 \
+
+\fs20 \cf2  
+\fs24 \cf0 \
+
+\fs20 \cf2 %---------------- FORM 1 ON LOAD ----------------
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 set(handles.txtCornea_p_value,\cf3 'String'\cf0 ,num2str(s_cornea(1)));
+\fs24 \
+
+\fs20 set(handles.txtCornea_c_value,\cf3 'String'\cf0 ,num2str(s_cornea(2)));
+\fs24 \
+
+\fs20 set(handles.txtCornea_th_value,\cf3 'String'\cf0 ,num2str(s_cornea(3)));
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 set(handles.txtAC_t_value,\cf3 'String'\cf0 ,num2str(t_anteriorc(1)));
+\fs24 \
+
+\fs20 set(handles.txtAC_v_value,\cf3 'String'\cf0 ,num2str(t_anteriorc(2)));
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 set(handles.txtAC_rt_value,\cf3 'String'\cf0 ,num2str(t_anteriorc(1)/t_anteriorc(2)));
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 set(handles.txtLensAS_p_value,\cf3 'String'\cf0 ,num2str(s_lens_as(1)));
+\fs24 \
+
+\fs20 set(handles.txtLensAS_c_value,\cf3 'String'\cf0 ,num2str(s_lens_as(2)));
+\fs24 \
+
+\fs20 set(handles.txtLensAS_th_value,\cf3 'String'\cf0 ,num2str(s_lens_as(3)));
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 set(handles.txtLens_t_value,\cf3 'String'\cf0 ,num2str(t_lens(1)));
+\fs24 \
+
+\fs20 set(handles.txtLens_v_value,\cf3 'String'\cf0 ,num2str(t_lens(2)));
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 set(handles.txtLens_rt_value,\cf3 'String'\cf0 ,num2str(t_lens(1)/t_lens(2)));
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 set(handles.txtLensPS_p_value,\cf3 'String'\cf0 ,num2str(s_lens_ps(1)));
+\fs24 \
+
+\fs20 set(handles.txtLensPS_c_value,\cf3 'String'\cf0 ,num2str(s_lens_ps(2)));
+\fs24 \
+
+\fs20 set(handles.txtLensPS_th_value,\cf3 'String'\cf0 ,num2str(s_lens_ps(3)));
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 set(handles.txtPc_t_value,\cf3 'String'\cf0 ,num2str(t_posteriorc(1)));
+\fs24 \
+
+\fs20 set(handles.txtPC_v_value,\cf3 'String'\cf0 ,num2str(t_posteriorc(2)));
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 set(handles.txtPC_rt_value,\cf3 'String'\cf0 ,num2str(t_posteriorc(1)/t_posteriorc(2)));
+\fs24 \
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf2 % LENS_PS - SPHERO-CYLINDRICAL PARAMETER
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 s_lens_ps = [13;2;30];  \cf2 %(p,c,theta)
+\fs24 \cf0 \
+
+\fs20  
+\fs24 \
+
+\fs20 q = get(hObject,\cf3 'Value'\cf0 );
+\fs24 \
+
+\fs20 q = (q-3)/20;
+\fs24 \
+
+\fs20 set(handles.txtLensPS_p_value,\cf3 'String'\cf0 ,num2str((q * s_lens_ps(1)) + s_lens_ps(1)));
+\fs24 \
+\
+\
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf2 % ANTERIOR CHAMBER - THICKNESS | REFRACTIVE INDEX
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 t_anteriorc = [3.6E-3; 1.366];  \cf2 %(t,v)
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf2  
+\fs24 \cf0 \
+\pard\pardeftab720\partightenfactor0
+
+\fs20 \cf0 q = get(hObject,\cf3 'Value'\cf0 );
+\fs24 \
+
+\fs20 q = (q-3)/20;
+\fs24 \
+
+\fs20 refractive_idx = (q * t_anteriorc(2)) + t_anteriorc(2);
+\fs24 \
+
+\fs20 set(handles.txtAC_v_value,\cf3 'String'\cf0 ,num2str(refractive_idx));
+\fs24 \
+
+\fs20  
+\fs24 \
+
+\fs20 ticknes = str2double(get(handles.txtAC_t_value,\cf3 'String'\cf0 ));
+\fs24 \
+
+\fs20 set(handles.txtAC_rt_value,\cf3 'String'\cf0 ,num2str(ticknes/refractive_idx));}
