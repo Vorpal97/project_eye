@@ -218,10 +218,10 @@ function calculate(handles)
         tau1 = tau1_calc(handles);
         r2 = tau1 * r_in;
         tau2 = tau2_calc(handles);
-        r3 = tau2 * r2     ;    
+        r3 = tau2 * r2;            
         plot3(k,r3(3),r3(4),"+")
-        l1 = [r_in(3) r3(3); r_in(4) r3(4); 0 k];
-        plot3(l1(3,:),l1(1,:), l1(2,:));
+        l1 = [r_in(3) r3(3); r_in(4) r3(4); 0 k]
+        plot3(l1(:,2),l1(:,1), l1(1,:));
         
         k = k + (str2double(get(handles.txtLens_t_value,'String'))) * 1000;
         v3=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
@@ -232,7 +232,7 @@ function calculate(handles)
         r5 = tau4 * r4;
         plot3(k,r5(3),r5(4),"+")
         l2 = [r3(3) r5(3); r3(4) r5(4); k - (str2double(get(handles.txtLens_t_value,'String'))) * 1000 k];
-        plot3(l2(3,:),l2(1,:), l2(2,:));
+        plot3(l2(3,:),l2(2,:), l2(1,:));
 
         
         
@@ -245,7 +245,7 @@ function calculate(handles)
         r_out = tau6 * r6;
         plot3(k,r_out(3),r_out(4),"+")
         l3 = [r5(3) r_out(3); r5(4) r_out(4); k - (str2double(get(handles.txtPc_t_value,'String'))) * 1000 k];
-        plot3(l3(3,:),l3(1,:), l3(2,:));
+        plot3(l3(3,:),l3(2,:), l3(1,:));
 
 
         
