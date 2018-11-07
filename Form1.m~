@@ -2000,188 +2000,187 @@ end
 
 
 % --- Executes on button press in btn_calcola.
-function btn_calcola_Callback(hObject, eventdata, handles)
-
-    set(handles.txt_calculating,'String','Calculating');
-    o = zeros(3,1);    %pinol
-
-    oc = [str2double(get(handles.txt_cyl_x,'String'));str2double(get(handles.txt_cyl_y,'String'));str2double(get(handles.txt_cyl_z,'String'))];      %posizione del centro del cilindro nello spazio
-    h = str2double(get(handles.txb_cyl_h,'String'));            %altezza del cilindro
-    r = str2double(get(handles.txb_cyl_r,'String'));            %raggio del cilindro
-
-    n = str2double(get(handles.txb_np,'String'));        %n. di punti
-
-    ex = [0,180];      %intervallo
-    st = (ex(2) - ex(1))/(n/2);
-    th = [ex(1):st:ex(2)];
-
-    stz = h / (n/2);
-    y = [-h/2:stz:h/2];
-
-    x_cil = inline('r*cos((th/180)*pi)');
-    z_cil = inline('r*sin((th/180)*pi)');
-
-    N = zeros(numel(th)*numel(y),3);
-
-    n1 = ones(numel(th),1);
-    n2 = ones(numel(th),1);
-    n3 = ones(numel(y),1);
-
-    for i = 1:numel(y)
-        n3(i) = ((oc(2)-o(2)) + y(i));   %product for scalar of n3 wich is all-one vector, for the corrisponding y value
-    end
-
-    k = 1;
-    for i = 1:numel(th)
-        x = (oc(1)-o(1))+x_cil(r,th(i));     %x = (xc'-xc) + rcos(th)   |    M(i,j,1) i _> altezza y, j -> angolo theta
-        z = (oc(3)-o(3))+z_cil(r,th(i));     %z = (zc'-zc) + rsin(th)   |    1 -> X   2 -> Z  3 -> Y rispetto a o
-
-        %reinitialization of n1 & n2 array
+    function btn_calcola_Callback(hObject, eventdata, handles)
+        
+        set(handles.txt_calculating,'String','Calculating');
+        o = zeros(3,1);    %pinol
+        
+        oc = [str2double(get(handles.txt_cyl_x,'String'));str2double(get(handles.txt_cyl_y,'String'));str2double(get(handles.txt_cyl_z,'String'))];      %posizione del centro del cilindro nello spazio
+        h = str2double(get(handles.txb_cyl_h,'String'));            %altezza del cilindro
+        r = str2double(get(handles.txb_cyl_r,'String'));            %raggio del cilindro
+        
+        n = str2double(get(handles.txb_np,'String'));        %n. di punti
+        
+        ex = [0,180];      %intervallo
+        st = (ex(2) - ex(1))/(n/2);
+        th = [ex(1):st:ex(2)];
+        
+        stz = h / (n/2);
+        y = [-h/2:stz:h/2];
+        
+        x_cil = inline('r*cos((th/180)*pi)');
+        z_cil = inline('r*sin((th/180)*pi)');
+        
+        N = zeros(numel(th)*numel(y),3);
+        
         n1 = ones(numel(th),1);
         n2 = ones(numel(th),1);
-
-        n1 = n1 * x;                         %slice of N(:,1), change on every iter.
-        n2 = n2 * z;                         %slice of N(:,2), change on every iter.
-
-        N(k:i*numel(th),1) = n1(:);
-        N(k:i*numel(th),2) = n2(:);
-        N(k:i*numel(th),3) = n3(:);                  %slice of N(:,3), not change.
-        k = k + numel(th);
-    end
-
-
-    %prof
-    ax = inline('-90+(180/pi)*acos(x./sqrt(x.^2 + y.^2 + z.^2))');
-    ay = inline('-90+(180/pi)*acos(y./sqrt(x.^2 + y.^2 + z.^2))');
-
-    cla
-    cla(handles.axes2);
-    cla(handles.axes3);
-    flag = false;
-    
-    %transfer matrix calculation
-    tau1_2 = tau2_calc(handles) * tau1_calc(handles);
-    tau3_4 = tau4_calc(handles) * tau3_calc(handles);
-    tau5_6 = tau6_calc(handles) * tau5_calc(handles);
-
-    x = N(:,1);
-    y = N(:,3);
-    z = N(:,2);
-    r_in = [(ax(x,y,z)),(ay(x,y,z)),zeros(numel(N(:,1)),1),zeros(numel(N(:,1)),1),ones(numel(N(:,1)),1)]';
-    
-    %multy ray plot
-    multiplot(handles,r_in,flag,tau1_2,tau3_4,tau5_6);
-
-    %ray_plot
-    N_t = N';
-    m2 = zeros(numel(N_t(:,1)),numel(N_t(1,:))*2);
-    m2(:,2:2:end) = N_t(:,:);
-    lk = [m2(2,:) ; m2(1,:) ; m2(3,:) ];
-    plot3(handles.axes3,lk(1,:),lk(2,:), lk(3,:),'color','[0.9290, 0.6940, 0.1250]');
-
-    %cylinder plot
-    plot3(handles.axes3,N(:,2),N(:,1), N(:,3),'o'); hold on;
-
-
-    p = zeros(4, 1);
-    p(1) = plot3(NaN,NaN,NaN,'color','[0, 0.4470, 0.7410]');
-    p(2) = plot3(NaN,NaN,NaN,'color','[0.9290, 0.6940, 0.1250]');
-    p(3) = plot3(NaN,NaN,NaN,'color','[0.3010, 0.7450, 0.9330]');
-    p(4) = plot3(NaN,NaN,NaN,'color','[0.8500, 0.3250, 0.0980]');
-    legend(handles.axes1,p,{'Cornea','Lens anterior surface','Lens posterior surface','Retina'},'NumColumns',2);
-
-
-    xlabel('x')
-    ylabel('y')
-    zlabel('z')
-    rotate3d(handles.axes3,'on')
-    rotate3d(handles.axes1,'on')
-    grid(handles.axes3,'on');
-    set(handles.txt_calculating,'String','');
-
-
-    function flag = multiplot(handles,r_in,flag,tau1_2,tau3_4,tau5_6)
-
-        % ------------- RETINA PLOT ------------
-        k = 0;
-        if(flag == false)
-            v=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
-            plot3(v(3,:),v(2,:),v(1,:),'color','[0, 0.4470, 0.7410]'); hold(handles.axes1,'on');
-            plot3(handles.axes3,v(3,:),v(2,:),v(1,:),'color','[0, 0.4470, 0.7410]'); hold(handles.axes3,'on');
-            plot3(handles.axes3,0,0,0,'+','color','[0.6350, 0.0780, 0.1840]');
-            plot3(handles.axes1,0,0,0,'+','color','[0.6350, 0.0780, 0.1840]');
-
+        n3 = ones(numel(y),1);
+        
+        for i = 1:numel(y)
+            n3(i) = ((oc(2)-o(2)) + y(i));   %product for scalar of n3 wich is all-one vector, for the corrisponding y value
         end
-
-        %--------------- AS LENS PLOT
-        k = k + (str2double(get(handles.txtAC_t_value,'String'))) * 1000;
-
-        if(flag == false)
-            v2=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
-            plot3(v2(3,:),v2(2,:),v2(1,:),'color','[0.9290, 0.6940, 0.1250]');
+        
+        k = 1;
+        for i = 1:numel(th)
+            x = (oc(1)-o(1))+x_cil(r,th(i));     %x = (xc'-xc) + rcos(th)   |    M(i,j,1) i _> altezza y, j -> angolo theta
+            z = (oc(3)-o(3))+z_cil(r,th(i));     %z = (zc'-zc) + rsin(th)   |    1 -> X   2 -> Z  3 -> Y rispetto a o
+            
+            %reinitialization of n1 & n2 array
+            n1 = ones(numel(th),1);
+            n2 = ones(numel(th),1);
+            
+            n1 = n1 * x;                         %slice of N(:,1), change on every iter.
+            n2 = n2 * z;                         %slice of N(:,2), change on every iter.
+            
+            N(k:i*numel(th),1) = n1(:);
+            N(k:i*numel(th),2) = n2(:);
+            N(k:i*numel(th),3) = n3(:);                  %slice of N(:,3), not change.
+            k = k + numel(th);
         end
-        r3 = tau1_2 * r_in;
-        %         plot3(k,r3(3),r3(4),"+")
-
-        m2 = zeros(numel(r_in(:,1)),numel(r_in(1,:))*2);
-        m2(:,1:2:end) = r_in(:,:);
-        m2(:,2:2:end) = r3(:,:);
-        z1 = zeros(1, numel(r_in(1,:))*2);
-        z1(1,1:2:end) = 0;
-        z1(1,2:2:end) = k;
-
-        l1 = [m2(3,:) ; m2(4,:) ; z1(:,:) ];
-        plot3(l1(3,:),l1(1,:), l1(2,:),'color','[0.6350, 0.0780, 0.1840]');
-
-
-
-        k = k + (str2double(get(handles.txtLens_t_value,'String'))) * 1000;
-        if(flag == false)
-            v3=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
-            plot3(v3(3,:),v3(2,:),v3(1,:),'color','[0.3010, 0.7450, 0.9330]');
-        end
-        r5 = tau3_4 * r3;
-        %         plot3(k,r5(3),r5(4),"+")
-
-        m2 = zeros(numel(r3(:,1)),numel(r3(1,:))*2);
-        m2(:,1:2:end) = r3(:,:);
-        m2(:,2:2:end) = r5(:,:);
-        z1 = zeros(1, numel(r3(1,:))*2);
-        z1(1,1:2:end) = k - (str2double(get(handles.txtLens_t_value,'String'))) * 1000;
-        z1(1,2:2:end) = k;
-
-        l2 = [m2(3,:) ; m2(4,:) ; z1(:,:) ];
-
-        plot3(l2(3,:),l2(1,:), l2(2,:),'color','[0.4940, 0.1840, 0.5560]');
-
-
-        k = k + (str2double(get(handles.txtPc_t_value,'String'))) * 1000;
-        if(flag == false)
-            v4=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
-            plot3(v4(3,:),v4(2,:),v4(1,:),'color','[0.8500, 0.3250, 0.0980]');
-        end
-        r_out = tau5_6 * r5;
-        %         plot3(k,r_out(3),r_out(4),"+")
-
-        m2 = zeros(numel(r5(:,1)),numel(r5(1,:))*2);
-        m2(:,1:2:end) = r5(:,:);
-        m2(:,2:2:end) = r_out(:,:);
-        z1 = zeros(1, numel(r5(1,:))*2);
-        z1(1,1:2:end) = k - (str2double(get(handles.txtPc_t_value,'String'))) * 1000;
-        z1(1,2:2:end) = k;
-
-        l3 = [m2(3,:) ; m2(4,:) ; z1(:,:) ];
-
-
-        %         l3 = [r5(3) r_out(3); r5(4) r_out(4); k - (str2double(get(handles.txtPc_t_value,'String'))) * 1000 k];
-        plot3(l3(3,:),l3(1,:), l3(2,:),'color','[0.4660, 0.6740, 0.1880');
-
-        if(flag == false)
-            grid(handles.axes1,'on')
-            rotate3d(handles.axes1,'on')
-            grid(handles.axes2,'on')
-            plot(handles.axes2,v4(2,:)*10,v4(1,:)*10,'color','[0.8500, 0.3250, 0.0980]'); hold(handles.axes2,'on')
-
-        end
-        plot(handles.axes2,r_out(3,:)*100,r_out(4,:)*100,".");
-        flag = true;
+        
+        
+        %prof
+        ax = inline('-90+(180/pi)*acos(x./sqrt(x.^2 + y.^2 + z.^2))');
+        ay = inline('-90+(180/pi)*acos(y./sqrt(x.^2 + y.^2 + z.^2))');
+        
+        cla
+        cla(handles.axes2);
+        cla(handles.axes3);
+        flag = false;
+        
+        tau1_2 = tau2_calc(handles) * tau1_calc(handles);
+        tau3_4 = tau4_calc(handles) * tau3_calc(handles);
+        tau5_6 = tau6_calc(handles) * tau5_calc(handles);
+        
+        x = N(:,1);
+        y = N(:,3);
+        z = N(:,2);
+        r_in = [(ax(x,y,z)),(ay(x,y,z)),zeros(numel(N(:,1)),1),zeros(numel(N(:,1)),1),ones(numel(N(:,1)),1)]';
+        
+        multiplot(handles,r_in,flag,tau1_2,tau3_4,tau5_6);
+        
+        N_t = N';
+        m2 = zeros(numel(N_t(:,1)),numel(N_t(1,:))*2);
+        m2(:,2:2:end) = N_t(:,:);
+        
+        
+        lk = [m2(2,:) ; m2(1,:) ; m2(3,:) ];
+        plot3(handles.axes3,lk(1,:),lk(2,:), lk(3,:),'color','[0.9290, 0.6940, 0.1250]');
+        
+        
+        plot3(handles.axes3,N(:,2),N(:,1), N(:,3),'o'); hold on;
+        
+        
+        p = zeros(4, 1);
+        p(1) = plot3(NaN,NaN,NaN,'color','[0, 0.4470, 0.7410]');
+        p(2) = plot3(NaN,NaN,NaN,'color','[0.9290, 0.6940, 0.1250]');
+        p(3) = plot3(NaN,NaN,NaN,'color','[0.3010, 0.7450, 0.9330]');
+        p(4) = plot3(NaN,NaN,NaN,'color','[0.8500, 0.3250, 0.0980]');
+        legend(handles.axes1,p,{'Cornea','Lens anterior surface','Lens posterior surface','Retina'},'NumColumns',2);
+        
+        
+        xlabel('x')
+        ylabel('y')
+        zlabel('z')
+        rotate3d(handles.axes3,'on')
+        rotate3d(handles.axes1,'on')
+        grid(handles.axes3,'on');
+        set(handles.txt_calculating,'String','');
+        
+        
+        function flag = multiplot(handles,r_in,flag,tau1_2,tau3_4,tau5_6)
+            
+            % ------------- RETINA PLOT ------------
+            k = 0;
+            if(flag == false)
+                v=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
+                plot3(v(3,:),v(2,:),v(1,:),'color','[0, 0.4470, 0.7410]'); hold(handles.axes1,'on');
+                plot3(handles.axes3,v(3,:),v(2,:),v(1,:),'color','[0, 0.4470, 0.7410]'); hold(handles.axes3,'on');
+                plot3(handles.axes3,0,0,0,'+','color','[0.6350, 0.0780, 0.1840]');
+                plot3(handles.axes1,0,0,0,'+','color','[0.6350, 0.0780, 0.1840]');
+                
+            end
+            
+            %--------------- AS LENS PLOT
+            k = k + (str2double(get(handles.txtAC_t_value,'String'))) * 1000;
+            
+            if(flag == false)
+                v2=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
+                plot3(v2(3,:),v2(2,:),v2(1,:),'color','[0.9290, 0.6940, 0.1250]');
+            end
+            r3 = tau1_2 * r_in;
+            %         plot3(k,r3(3),r3(4),"+")
+            
+            m2 = zeros(numel(r_in(:,1)),numel(r_in(1,:))*2);
+            m2(:,1:2:end) = r_in(:,:);
+            m2(:,2:2:end) = r3(:,:);
+            z1 = zeros(1, numel(r_in(1,:))*2);
+            z1(1,1:2:end) = 0;
+            z1(1,2:2:end) = k;
+            
+            l1 = [m2(3,:) ; m2(4,:) ; z1(:,:) ];
+            plot3(l1(3,:),l1(1,:), l1(2,:),'color','[0.6350, 0.0780, 0.1840]');
+            
+            
+            
+            k = k + (str2double(get(handles.txtLens_t_value,'String'))) * 1000;
+            if(flag == false)
+                v3=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
+                plot3(v3(3,:),v3(2,:),v3(1,:),'color','[0.3010, 0.7450, 0.9330]');
+            end
+            r5 = tau3_4 * r3;
+            %         plot3(k,r5(3),r5(4),"+")
+            
+            m2 = zeros(numel(r3(:,1)),numel(r3(1,:))*2);
+            m2(:,1:2:end) = r3(:,:);
+            m2(:,2:2:end) = r5(:,:);
+            z1 = zeros(1, numel(r3(1,:))*2);
+            z1(1,1:2:end) = k - (str2double(get(handles.txtLens_t_value,'String'))) * 1000;
+            z1(1,2:2:end) = k;
+            
+            l2 = [m2(3,:) ; m2(4,:) ; z1(:,:) ];
+            
+            plot3(l2(3,:),l2(1,:), l2(2,:),'color','[0.4940, 0.1840, 0.5560]');
+            
+            
+            k = k + (str2double(get(handles.txtPc_t_value,'String'))) * 1000;
+            if(flag == false)
+                v4=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
+                plot3(v4(3,:),v4(2,:),v4(1,:),'color','[0.8500, 0.3250, 0.0980]');
+            end
+            r_out = tau5_6 * r5;
+            %         plot3(k,r_out(3),r_out(4),"+")
+            
+            m2 = zeros(numel(r5(:,1)),numel(r5(1,:))*2);
+            m2(:,1:2:end) = r5(:,:);
+            m2(:,2:2:end) = r_out(:,:);
+            z1 = zeros(1, numel(r5(1,:))*2);
+            z1(1,1:2:end) = k - (str2double(get(handles.txtPc_t_value,'String'))) * 1000;
+            z1(1,2:2:end) = k;
+            
+            l3 = [m2(3,:) ; m2(4,:) ; z1(:,:) ];
+            
+            
+            %         l3 = [r5(3) r_out(3); r5(4) r_out(4); k - (str2double(get(handles.txtPc_t_value,'String'))) * 1000 k];
+            plot3(l3(3,:),l3(1,:), l3(2,:),'color','[0.4660, 0.6740, 0.1880');
+            
+            if(flag == false)
+                grid(handles.axes1,'on')
+                rotate3d(handles.axes1,'on')
+                grid(handles.axes2,'on')
+                plot(handles.axes2,v4(2,:)*10,v4(1,:)*10,'color','[0.8500, 0.3250, 0.0980]'); hold(handles.axes2,'on')
+                
+            end
+            plot(handles.axes2,r_out(3,:)*100,r_out(4,:)*100,".");
+            flag = true;
