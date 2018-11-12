@@ -23,7 +23,7 @@ function varargout = Form1(varargin)
 
 % Edit the above text to modify the response to help Form1
 
-% Last Modified by GUIDE v2.5 30-Oct-2018 10:38:57
+% Last Modified by GUIDE v2.5 08-Nov-2018 12:14:53
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -118,6 +118,27 @@ guidata(hObject, handles);
 
 plot_graf(handles);
 
+set(handles.slider53,'Enable','ON');
+set(handles.slider50,'Enable','ON');
+set(handles.slider49,'Enable','ON');
+set(handles.slider54,'Enable','ON');
+set(handles.pushbutton7,'Enable','ON');
+
+set(handles.slider57,'Enable','OFF');
+set(handles.slider58,'Enable','OFF');
+set(handles.slider59,'Enable','OFF');
+set(handles.txb_cyl_h,'Enable','OFF');
+set(handles.txb_cyl_r,'Enable','OFF');
+set(handles.txb_np,'Enable','OFF');
+set(handles.btn_reset_cyl,'Enable','OFF');
+
+set(handles.txt_filename,'Enable','OFF');
+set(handles.slider60,'Enable','OFF');
+set(handles.btn_load_fig,'Enable','OFF');
+set(handles.slider61,'Enable','OFF');
+set(handles.slider62,'Enable','OFF');
+set(handles.slider63,'Enable','OFF');
+
 
 
 % UIWAIT makes Form1 wait for user response (see UIRESUME)
@@ -201,8 +222,19 @@ S6=T(t/v); delta6=z; tau6=[S6 delta6;z' 1];
 
 function calculate(handles)
 
-    plot_graf(handles);
-
+    if(get(handles.radiobutton2,'Value') == 1)
+        plot_graf(handles);
+    end
+    
+    if(get(handles.radiobutton1,'Value') == 1)
+        cylinder_calculate(handles)
+    end
+    
+    if(get(handles.radiobutton3,'Value') == 1)
+        calculate_david(handles);
+    end
+    
+    
     function plot_graf(handles)
         cla
         % ------------- RETINA PLOT ------------
@@ -1903,6 +1935,7 @@ function pushbutton8_Callback(hObject, eventdata, handles)
 function slider57_Callback(hObject, eventdata, handles)
 q = get(hObject,'Value');
 set(handles.txt_cyl_x,'String',num2str(q));
+calculate(handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -1921,7 +1954,7 @@ end
 function slider58_Callback(hObject, eventdata, handles)
 q = get(hObject,'Value');
 set(handles.txt_cyl_y,'String',num2str(q));
-
+calculate(handles);
 
 % --- Executes during object creation, after setting all properties.
 function slider58_CreateFcn(hObject, eventdata, handles)
@@ -1939,7 +1972,7 @@ end
 function slider59_Callback(hObject, eventdata, handles)
 q = get(hObject,'Value');
 set(handles.txt_cyl_z,'String',num2str(-q));
-
+calculate(handles);
 
 % --- Executes during object creation, after setting all properties.
 function slider59_CreateFcn(hObject, eventdata, handles)
@@ -1999,135 +2032,183 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in btn_calcola.
-function btn_calcola_Callback(hObject, eventdata, handles)
-    
-    
-o = zeros(3,1);    %pinol
+% --- Executes on button press in btn_reset_cyl.
+function cylinder_calculate(handles)
 
-oc = [str2double(get(handles.txt_cyl_x,'String'));str2double(get(handles.txt_cyl_y,'String'));str2double(get(handles.txt_cyl_z,'String'))];      %posizione del centro del cilindro nello spazio
-h = str2double(get(handles.txb_cyl_h,'String'));            %altezza del cilindro
-r = str2double(get(handles.txb_cyl_r,'String'));            %raggio del cilindro
+    set(handles.txt_calculating,'String','Calculating');
+    o = zeros(3,1);    %pinol
 
-n = str2double(get(handles.txb_np,'String'));        %n. di punti
+    oc = [str2double(get(handles.txt_cyl_x,'String'));str2double(get(handles.txt_cyl_y,'String'));str2double(get(handles.txt_cyl_z,'String'))];      %posizione del centro del cilindro nello spazio
+    h = str2double(get(handles.txb_cyl_h,'String'));            %altezza del cilindro
+    r = str2double(get(handles.txb_cyl_r,'String'));            %raggio del cilindro
 
-ex = [0,180];      %intervallo
-st = (ex(2) - ex(1))/(n/2);
-th = [ex(1):st:ex(2)];
+    n = str2double(get(handles.txb_np,'String'));        %n. di punti
 
-stz = h / (n/2);
-y = [-h/2:stz:h/2];
+    ex = [0,180];      %intervallo
+    st = (ex(2) - ex(1))/(n/2);
+    th = [ex(1):st:ex(2)];
 
-x_cil = inline('r*cos((th/180)*pi)');
-z_cil = inline('r*sin((th/180)*pi)');
+    stz = h / (n/2);
+    y = [-h/2:stz:h/2];
 
-for i = 1:numel(th)
-    for j = 1:numel(y)
-        M(j,i,1) = (oc(1)-o(1))+x_cil(r,th(i));     %x = (xc'-xc) + rcos(th)   |    M(i,j,1) i _> altezza y, j -> angolo theta
-        M(j,i,2) = (oc(3)-o(3))+z_cil(r,th(i));     %z = (zc'-zc) + rsin(th)   |    1 -> X   2 -> Z  3 -> Y rispetto a o
-        M(j,i,3) = (oc(2)-o(2)) + y(j);
+    x_cil = inline('r*cos((th/180)*pi)');
+    z_cil = inline('r*sin((th/180)*pi)');
+
+    N = zeros(numel(th)*numel(y),3);
+
+    n1 = ones(numel(th),1);
+    n2 = ones(numel(th),1);
+    n3 = ones(numel(y),1);
+
+    for i = 1:numel(y)
+        n3(i) = ((oc(2)-o(2)) + y(i));   %product for scalar of n3 wich is all-one vector, for the corrisponding y value
     end
-end
 
-%prof
-ax = inline('90-(180/pi)*acos(x/sqrt(x^2 + y^2 + z^2))');
-ay = inline('90-(180/pi)*acos(y/sqrt(x^2 + y^2 + z^2))');
-%io
-% ax = inline('asin(abs(0-z)/sqrt((0-y)^2 + (0-z)^2))');
-% ay = inline('asin(abs(0-z)/sqrt((0-z)^2 + (0-x)^2))');
+    k = 1;
+    for i = 1:numel(th)
+        x = (oc(1)-o(1))+x_cil(r,th(i));     %x = (xc'-xc) + rcos(th)   |    M(i,j,1) i _> altezza y, j -> angolo theta
+        z = (oc(3)-o(3))+z_cil(r,th(i));     %z = (zc'-zc) + rsin(th)   |    1 -> X   2 -> Z  3 -> Y rispetto a o
 
+        %reinitialization of n1 & n2 array
+        n1 = ones(numel(th),1);
+        n2 = ones(numel(th),1);
 
-        cla
-        cla(handles.axes2);
-        cla(handles.axes3);
-        flag = false;
-for i=1:numel(M(:,1,1))
-    for j=1:numel(M(1,:,1))
-        x = M(j,i,1);
-        y = M(j,i,3);
-        z = M(j,i,2);
-%         r_in = [(pi/2 - ax(y,z))*1000;(pi/2 - ay(x,z))*1000;0*1000;0*1000;1];
-        r_in = [(ax(x,y,z));(ay(x,y,z));0;0;1];
-        flag = multiplot(handles,r_in,flag);
+        n1 = n1 * x;                         %slice of N(:,1), change on every iter.
+        n2 = n2 * z;                         %slice of N(:,2), change on every iter.
+
+        N(k:i*numel(th),1) = n1(:);
+        N(k:i*numel(th),2) = n2(:);
+        N(k:i*numel(th),3) = n3(:);                  %slice of N(:,3), not change.
+        k = k + numel(th);
     end
-end
-            p = zeros(4, 1);
-            p(1) = plot3(NaN,NaN,NaN,'color','[0, 0.4470, 0.7410]');
-            p(2) = plot3(NaN,NaN,NaN,'color','[0.9290, 0.6940, 0.1250]');
-            p(3) = plot3(NaN,NaN,NaN,'color','[0.3010, 0.7450, 0.9330]');
-            p(4) = plot3(NaN,NaN,NaN,'color','[0.8500, 0.3250, 0.0980]');
-            legend(handles.axes1,p,{'Cornea','Lens anterior surface','Lens posterior surface','Retina'},'NumColumns',2);                
 
-            
-            for i=1:numel(M(:,1,1))
-                for j=1:numel(M(1,:,1))
-                    plot3(handles.axes3,M(i,j,2),M(i,j,1), M(i,j,3),'o'); hold on;
-                    lk = [M(i,j,2) 0; M(i,j,1) 0; M(i,j,3) 0];
-                    plot3(handles.axes3,lk(1,:),lk(2,:), lk(3,:),'color','[0.9290, 0.6940, 0.1250]');
 
-                end
-            end
+    %prof
+    ax = inline('-90+(180/pi)*acos(x./sqrt(x.^2 + y.^2 + z.^2))');
+    ay = inline('-90+(180/pi)*acos(y./sqrt(x.^2 + y.^2 + z.^2))');
 
-            xlabel('x')
-            ylabel('y')
-            zlabel('z')
-            rotate3d(handles.axes3,'on')
-            grid(handles.axes3,'on');
+    cla
+    cla(handles.axes2);
+    cla(handles.axes3);
+    flag = false;
+    
+    %transfer matrix calculation
+    tau1_2 = tau2_calc(handles) * tau1_calc(handles);
+    tau3_4 = tau4_calc(handles) * tau3_calc(handles);
+    tau5_6 = tau6_calc(handles) * tau5_calc(handles);
 
-    function flag = multiplot(handles,r_in,flag)
+    x = N(:,1);
+    y = N(:,3);
+    z = N(:,2);
+    r_in = [(ax(x,y,z)),(ay(x,y,z)),zeros(numel(N(:,1)),1),zeros(numel(N(:,1)),1),ones(numel(N(:,1)),1)]';
+    
+    %multy ray plot
+    multiplot(handles,r_in,flag,tau1_2,tau3_4,tau5_6);
+
+    %ray_plot
+    N_t = N';
+    m2 = zeros(numel(N_t(:,1)),numel(N_t(1,:))*2);
+    m2(:,2:2:end) = N_t(:,:);
+    lk = [m2(2,:) ; m2(1,:) ; m2(3,:) ];
+    plot3(handles.axes3,lk(1,:),lk(2,:), lk(3,:),'color','[0.9290, 0.6940, 0.1250]');
+
+    %cylinder plot
+    plot3(handles.axes3,N(:,2),N(:,1), N(:,3),'o'); hold on;
+
+
+    p = zeros(4, 1);
+    p(1) = plot3(NaN,NaN,NaN,'color','[0, 0.4470, 0.7410]');
+    p(2) = plot3(NaN,NaN,NaN,'color','[0.9290, 0.6940, 0.1250]');
+    p(3) = plot3(NaN,NaN,NaN,'color','[0.3010, 0.7450, 0.9330]');
+    p(4) = plot3(NaN,NaN,NaN,'color','[0.8500, 0.3250, 0.0980]');
+    legend(handles.axes1,p,{'Cornea','Lens anterior surface','Lens posterior surface','Retina'},'NumColumns',2);
+
+
+    xlabel('x')
+    ylabel('y')
+    zlabel('z')
+    rotate3d(handles.axes3,'on')
+    rotate3d(handles.axes1,'on')
+    grid(handles.axes3,'on');
+    set(handles.txt_calculating,'String','');
+
+
+    function flag = multiplot(handles,r_in,flag,tau1_2,tau3_4,tau5_6)
 
         % ------------- RETINA PLOT ------------
         k = 0;
         if(flag == false)
             v=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
-            plot3(v(3,:),v(2,:),v(1,:),'color','[0, 0.4470, 0.7410]'); hold(handles.axes1,'on');
+            plot3(handles.axes1,v(3,:),v(2,:),v(1,:),'color','[0, 0.4470, 0.7410]'); hold(handles.axes1,'on');
             plot3(handles.axes3,v(3,:),v(2,:),v(1,:),'color','[0, 0.4470, 0.7410]'); hold(handles.axes3,'on');
             plot3(handles.axes3,0,0,0,'+','color','[0.6350, 0.0780, 0.1840]');
             plot3(handles.axes1,0,0,0,'+','color','[0.6350, 0.0780, 0.1840]');
 
         end
-        
+
         %--------------- AS LENS PLOT
         k = k + (str2double(get(handles.txtAC_t_value,'String'))) * 1000;
 
         if(flag == false)
             v2=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
-            plot3(v2(3,:),v2(2,:),v2(1,:),'color','[0.9290, 0.6940, 0.1250]');
+            plot3(handles.axes1,v2(3,:),v2(2,:),v2(1,:),'color','[0.9290, 0.6940, 0.1250]');
         end
-        tau1 = tau1_calc(handles);
-        r2 = tau1 * r_in;
-        tau2 = tau2_calc(handles);
-        r3 = tau2 * r2;        
-%         plot3(k,r3(3),r3(4),"+")
-        l1 = [r_in(3) r3(3); r_in(4) r3(4); 0 k];
-        plot3(l1(3,:),l1(1,:), l1(2,:),'color','[0.6350, 0.0780, 0.1840]');
+        r3 = tau1_2 * r_in;
+        %         plot3(k,r3(3),r3(4),"+")
+
+        m2 = zeros(numel(r_in(:,1)),numel(r_in(1,:))*2);
+        m2(:,1:2:end) = r_in(:,:);
+        m2(:,2:2:end) = r3(:,:);
+        z1 = zeros(1, numel(r_in(1,:))*2);
+        z1(1,1:2:end) = 0;
+        z1(1,2:2:end) = k;
+
+        l1 = [m2(3,:) ; m2(4,:) ; z1(:,:) ];
+        plot3(handles.axes1,l1(3,:),l1(1,:), l1(2,:),'color','[0.6350, 0.0780, 0.1840]');
+
+
 
         k = k + (str2double(get(handles.txtLens_t_value,'String'))) * 1000;
         if(flag == false)
             v3=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
-            plot3(v3(3,:),v3(2,:),v3(1,:),'color','[0.3010, 0.7450, 0.9330]');
+            plot3(handles.axes1,v3(3,:),v3(2,:),v3(1,:),'color','[0.3010, 0.7450, 0.9330]');
         end
-        tau3 = tau3_calc(handles);
-        r4 = tau3 * r3;
-        tau4 = tau4_calc(handles);
-        r5 = tau4 * r4;
-%         plot3(k,r5(3),r5(4),"+")
-        l2 = [r3(3) r5(3); r3(4) r5(4); k - (str2double(get(handles.txtLens_t_value,'String'))) * 1000 k];
-        plot3(l2(3,:),l2(1,:), l2(2,:),'color','[0.4940, 0.1840, 0.5560]');
+        r5 = tau3_4 * r3;
+        %         plot3(k,r5(3),r5(4),"+")
 
-        
+        m2 = zeros(numel(r3(:,1)),numel(r3(1,:))*2);
+        m2(:,1:2:end) = r3(:,:);
+        m2(:,2:2:end) = r5(:,:);
+        z1 = zeros(1, numel(r3(1,:))*2);
+        z1(1,1:2:end) = k - (str2double(get(handles.txtLens_t_value,'String'))) * 1000;
+        z1(1,2:2:end) = k;
+
+        l2 = [m2(3,:) ; m2(4,:) ; z1(:,:) ];
+
+        plot3(handles.axes1,l2(3,:),l2(1,:), l2(2,:),'color','[0.4940, 0.1840, 0.5560]');
+
+
         k = k + (str2double(get(handles.txtPc_t_value,'String'))) * 1000;
         if(flag == false)
             v4=[-5 5 5 -5 -5;10 10 -10 -10 10;k k k k k];
-            plot3(v4(3,:),v4(2,:),v4(1,:),'color','[0.8500, 0.3250, 0.0980]');
+            plot3(handles.axes1,v4(3,:),v4(2,:),v4(1,:),'color','[0.8500, 0.3250, 0.0980]');
         end
-        tau5 = tau5_calc(handles);
-        r6 = tau5 * r5;
-        tau6 = tau6_calc(handles);
-        r_out = tau6 * r6;
-%         plot3(k,r_out(3),r_out(4),"+")
-        l3 = [r5(3) r_out(3); r5(4) r_out(4); k - (str2double(get(handles.txtPc_t_value,'String'))) * 1000 k];
-        plot3(l3(3,:),l3(1,:), l3(2,:),'color','[0.4660, 0.6740, 0.1880');
+        r_out = tau5_6 * r5;
+        %         plot3(k,r_out(3),r_out(4),"+")
+
+        m2 = zeros(numel(r5(:,1)),numel(r5(1,:))*2);
+        m2(:,1:2:end) = r5(:,:);
+        m2(:,2:2:end) = r_out(:,:);
+        z1 = zeros(1, numel(r5(1,:))*2);
+        z1(1,1:2:end) = k - (str2double(get(handles.txtPc_t_value,'String'))) * 1000;
+        z1(1,2:2:end) = k;
+
+        l3 = [m2(3,:) ; m2(4,:) ; z1(:,:) ];
+
+
+        %         l3 = [r5(3) r_out(3); r5(4) r_out(4); k - (str2double(get(handles.txtPc_t_value,'String'))) * 1000 k];
+        plot3(handles.axes1,l3(3,:),l3(1,:), l3(2,:),'color','[0.4660, 0.6740, 0.1880');
+
         if(flag == false)
             grid(handles.axes1,'on')
             rotate3d(handles.axes1,'on')
@@ -2135,5 +2216,267 @@ end
             plot(handles.axes2,v4(2,:)*10,v4(1,:)*10,'color','[0.8500, 0.3250, 0.0980]'); hold(handles.axes2,'on')
 
         end
-            plot(handles.axes2,r_out(3)*100,r_out(4)*100,".");
+        plot(handles.axes2,r_out(3,:)*100,r_out(4,:)*100,".");
         flag = true;
+
+function calculate_david(handles)
+    S = load(get(handles.txt_filename,'String'),'-mat');
+    N = zeros(numel(S.surface.X),3);
+    samp = fix(str2double(get(handles.txt_sampling,'String')));
+    N(:,1) = (S.surface.X*1/10) - str2double(get(handles.txt_obj_x,'String'));
+    N(:,2) = ((S.surface.Y*1/10) * -1) + (str2double(get(handles.txt_obj_z,'String')));
+    N(:,3) = (S.surface.Z*1/10) - 10 - str2double(get(handles.txt_obj_y,'String'));
+    
+    plot3(handles.axes4,N(1:samp:end,1),N(1:samp:end,2),N(1:samp:end,3),'.');
+    rotate3d(handles.axes4,'on');
+    
+    %prof
+    ax = inline('-90+(180/pi)*acos(x./sqrt(x.^2 + y.^2 + z.^2))');
+    ay = inline('-90+(180/pi)*acos(y./sqrt(x.^2 + y.^2 + z.^2))');
+
+    cla
+    cla(handles.axes2);
+    cla(handles.axes3);
+    flag = false;
+    
+    %transfer matrix calculation
+    tau1_2 = tau2_calc(handles) * tau1_calc(handles);
+    tau3_4 = tau4_calc(handles) * tau3_calc(handles);
+    tau5_6 = tau6_calc(handles) * tau5_calc(handles);
+
+    x = N(:,1);
+    y = N(:,3);
+    z = N(:,2);
+    r_in = [(ax(x,y,z)),(ay(x,y,z)),zeros(numel(N(:,1)),1),zeros(numel(N(:,1)),1),ones(numel(N(:,1)),1)]';
+    
+    %multy ray plot
+    multiplot(handles,r_in,flag,tau1_2,tau3_4,tau5_6);
+
+    %ray_plot
+    N_t = N';
+    m2 = zeros(numel(N_t(:,1)),numel(N_t(1,:))*2);
+    m2(:,2:2:end) = N_t(:,:);
+    lk = [m2(2,:) ; m2(1,:) ; m2(3,:) ];
+    plot3(handles.axes3,lk(1,:),lk(2,:), lk(3,:),'color','[0.9290, 0.6940, 0.1250]');
+
+    %cylinder plot
+    plot3(handles.axes3,N(:,2),N(:,1), N(:,3),'.'); hold on;
+
+
+    p = zeros(4, 1);
+    p(1) = plot3(NaN,NaN,NaN,'color','[0, 0.4470, 0.7410]');
+    p(2) = plot3(NaN,NaN,NaN,'color','[0.9290, 0.6940, 0.1250]');
+    p(3) = plot3(NaN,NaN,NaN,'color','[0.3010, 0.7450, 0.9330]');
+    p(4) = plot3(NaN,NaN,NaN,'color','[0.8500, 0.3250, 0.0980]');
+    legend(handles.axes1,p,{'Cornea','Lens anterior surface','Lens posterior surface','Retina'},'NumColumns',2);
+
+
+    xlabel('x')
+    ylabel('y')
+    zlabel('z')
+    rotate3d(handles.axes4,'on')
+%     rotate3d(handles.axes1,'on')
+    grid(handles.axes3,'on');
+    set(handles.txt_calculating,'String','');
+
+
+
+% --- Executes on button press in radiobutton1.
+function radiobutton1_Callback(hObject, eventdata, handles)
+set(handles.radiobutton3,'Value',0);
+set(handles.radiobutton2,'Value',0);
+
+set(handles.slider53,'Enable','OFF');
+set(handles.slider50,'Enable','OFF');
+set(handles.slider49,'Enable','OFF');
+set(handles.slider54,'Enable','OFF');
+set(handles.pushbutton7,'Enable','OFF');
+
+set(handles.slider57,'Enable','ON');
+set(handles.slider58,'Enable','ON');
+set(handles.slider59,'Enable','ON');
+set(handles.txb_cyl_h,'Enable','ON');
+set(handles.txb_cyl_r,'Enable','ON');
+set(handles.txb_np,'Enable','ON');
+set(handles.btn_reset_cyl,'Enable','ON');
+
+set(handles.txt_filename,'Enable','OFF');
+set(handles.slider60,'Enable','OFF');
+set(handles.btn_load_fig,'Enable','OFF');
+set(handles.slider61,'Enable','OFF');
+set(handles.slider62,'Enable','OFF');
+set(handles.slider63,'Enable','OFF');
+
+
+calculate(handles)
+
+% --- Executes on button press in radiobutton3.
+function radiobutton3_Callback(hObject, eventdata, handles)
+
+set(handles.radiobutton1,'Value',0);
+set(handles.radiobutton2,'Value',0);
+
+set(handles.slider53,'Enable','OFF');
+set(handles.slider50,'Enable','OFF');
+set(handles.slider49,'Enable','OFF');
+set(handles.slider54,'Enable','OFF');
+set(handles.pushbutton7,'Enable','OFF');
+
+set(handles.slider57,'Enable','OFF');
+set(handles.slider58,'Enable','OFF');
+set(handles.slider59,'Enable','OFF');
+set(handles.txb_cyl_h,'Enable','OFF');
+set(handles.txb_cyl_r,'Enable','OFF');
+set(handles.txb_np,'Enable','OFF');
+set(handles.btn_reset_cyl,'Enable','OFF');
+
+set(handles.txt_filename,'Enable','ON');
+set(handles.slider60,'Enable','ON');
+set(handles.btn_load_fig,'Enable','ON');
+set(handles.slider61,'Enable','ON');
+set(handles.slider62,'Enable','ON');
+set(handles.slider63,'Enable','ON');
+
+
+
+% --- Executes on button press in radiobutton2.
+function radiobutton2_Callback(hObject, eventdata, handles)
+set(handles.radiobutton1,'Value',0);
+set(handles.radiobutton3,'Value',0);
+
+set(handles.slider53,'Enable','ON');
+set(handles.slider50,'Enable','ON');
+set(handles.slider49,'Enable','ON');
+set(handles.slider54,'Enable','ON');
+set(handles.pushbutton7,'Enable','ON');
+
+set(handles.slider57,'Enable','OFF');
+set(handles.slider58,'Enable','OFF');
+set(handles.slider59,'Enable','OFF');
+set(handles.txb_cyl_h,'Enable','OFF');
+set(handles.txb_cyl_r,'Enable','OFF');
+set(handles.txb_np,'Enable','OFF');
+set(handles.btn_reset_cyl,'Enable','OFF');
+
+set(handles.txt_filename,'Enable','OFF');
+set(handles.slider60,'Enable','OFF');
+set(handles.btn_load_fig,'Enable','OFF');
+set(handles.slider61,'Enable','OFF');
+set(handles.slider62,'Enable','OFF');
+set(handles.slider63,'Enable','OFF');
+
+calculate(handles)
+
+
+% --- Executes on button press in btn_reset_cyl.
+function btn_reset_cyl_Callback(hObject, eventdata, handles)
+set(handles.slider57,'Value',0);
+set(handles.txt_cyl_x,'String','0');
+set(handles.slider58,'Value',0);
+set(handles.txt_cyl_y,'String','0');
+set(handles.slider59,'Value',10);
+set(handles.txt_cyl_z,'String','-10');
+
+
+
+function txt_filename_Callback(hObject, eventdata, handles)
+% hObject    handle to txt_filename (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txt_filename as text
+%        str2double(get(hObject,'String')) returns contents of txt_filename as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function txt_filename_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txt_filename (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in btn_load_fig.
+function btn_load_fig_Callback(hObject, eventdata, handles)
+
+calculate(handles);
+
+% --- Executes on slider movement.
+function slider60_Callback(hObject, eventdata, handles)
+q = get(hObject,'Value');
+set(handles.txt_sampling,'String',num2str(q));
+calculate(handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function slider60_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to slider60 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on slider movement.
+function slider61_Callback(hObject, eventdata, handles)
+    q = get(hObject,'Value');
+    set(handles.txt_obj_x,'String',num2str(q));
+    calculate(handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function slider61_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to slider61 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on slider movement.
+function slider62_Callback(hObject, eventdata, handles)
+    q = get(hObject,'Value');
+    set(handles.txt_obj_y,'String',num2str(q));
+    calculate(handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function slider62_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to slider62 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on slider movement.
+function slider63_Callback(hObject, eventdata, handles)
+    q = get(hObject,'Value');
+    set(handles.txt_obj_z,'String',num2str(-q));
+    calculate(handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function slider63_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to slider63 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
