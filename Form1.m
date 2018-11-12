@@ -281,7 +281,7 @@ function calculate(handles)
         plot3(l3(3,:),l3(1,:), l3(2,:));
         grid(handles.axes1,'on')
         rotate3d(handles.axes1,'on')
-        legend(handles.axes1,[p(1),p(2),p(3),p(4)],{'Cornea','Lens anterior surface','Lens posterior surface','Retina'},'NumColumns',2);
+%         legend(handles.axes1,[p(1),p(2),p(3),p(4)],{'Cornea','Lens anterior surface','Lens posterior surface','Retina'},'NumColumns',2);
         
                 
         cla(handles.axes2);
@@ -2121,7 +2121,7 @@ function cylinder_calculate(handles)
     p(2) = plot3(NaN,NaN,NaN,'color','[0.9290, 0.6940, 0.1250]');
     p(3) = plot3(NaN,NaN,NaN,'color','[0.3010, 0.7450, 0.9330]');
     p(4) = plot3(NaN,NaN,NaN,'color','[0.8500, 0.3250, 0.0980]');
-    legend(handles.axes1,p,{'Cornea','Lens anterior surface','Lens posterior surface','Retina'},'NumColumns',2);
+%     legend(handles.axes1,p,{'Cornea','Lens anterior surface','Lens posterior surface','Retina'},'NumColumns',2);
 
 
     xlabel('x')
@@ -2227,6 +2227,7 @@ function calculate_david(handles)
     N(:,2) = ((S.surface.Y*1/10) * -1) + (str2double(get(handles.txt_obj_z,'String')));
     N(:,3) = (S.surface.Z*1/10) - 10 - str2double(get(handles.txt_obj_y,'String'));
     
+    cla(handles.axes4);
     plot3(handles.axes4,N(1:samp:end,1),N(1:samp:end,2),N(1:samp:end,3),'.');
     rotate3d(handles.axes4,'on');
     
@@ -2268,7 +2269,7 @@ function calculate_david(handles)
     p(2) = plot3(NaN,NaN,NaN,'color','[0.9290, 0.6940, 0.1250]');
     p(3) = plot3(NaN,NaN,NaN,'color','[0.3010, 0.7450, 0.9330]');
     p(4) = plot3(NaN,NaN,NaN,'color','[0.8500, 0.3250, 0.0980]');
-    legend(handles.axes1,p,{'Cornea','Lens anterior surface','Lens posterior surface','Retina'},'NumColumns',2);
+%     legend(handles.axes1,p,{'Cornea','Lens anterior surface','Lens posterior surface','Retina'},'NumColumns',2);
 
 
     xlabel('x')
